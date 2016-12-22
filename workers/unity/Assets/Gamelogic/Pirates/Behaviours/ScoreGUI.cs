@@ -16,6 +16,8 @@ namespace Assets.Gamelogic.Pirates.Behaviours
          * the GameObject of other players' ships.
          */
         [Require] private ShipControls.Writer ShipControlsWriter;
+        [Require]
+        private Score.Reader ScoreReader;
 
         private Text totalPointsGUI;
 
@@ -28,10 +30,20 @@ namespace Assets.Gamelogic.Pirates.Behaviours
 
         private void OnEnable()
         {
+            ScoreReader.ComponentUpdated += OnComponentUpdated;
         }
 
         private void OnDisable()
         {
+            ScoreReader.ComponentUpdated -= OnComponentUpdated;
+        }
+
+        private void OnComponentUpdated(Score.Update update)
+        {
+            if (update.numberOfPoints.HasValue)
+            {
+                updateGUI(update.numberOfPoints.Value);
+            }
         }
 
         void updateGUI(int score)

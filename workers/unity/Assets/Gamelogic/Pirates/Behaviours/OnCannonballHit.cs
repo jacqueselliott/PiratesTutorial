@@ -1,6 +1,9 @@
-﻿using Improbable.Ship;
+﻿using Improbable;
+using Improbable.Ship;
 using Improbable.Unity;
+using Improbable.Unity.Core;
 using Improbable.Unity.Visualizer;
+using Improbable.Worker;
 using UnityEngine;
 
 namespace Assets.Gamelogic.Pirates.Cannons
@@ -31,7 +34,30 @@ namespace Assets.Gamelogic.Pirates.Cannons
                 // Reduce health of this entity when hit
                 int newHealth = HealthWriter.Data.currentHealth - 20;
                 HealthWriter.Send(new Health.Update().SetCurrentHealth(newHealth));
+                
+                if (newHealth <= 0)
+                {
+                    AwardPointsForKill(new EntityId(other.GetComponent<DestroyCannonball>().firerEntityId.Id));
+                }
             }
+        }
+
+        private void AwardPointsForKill(EntityId firerEntityId)
+        {
+            uint pointsToAward = 1;
+
+            SpatialOS.Commands.SendCommand(HealthWriter, Score.Commands.AwardPoints.Descriptor,
+                new AwardPoints(pointsToAward), firerEntityId, result =>
+                {
+                    if (result.StatusCode != StatusCode.Success)
+                    {
+                        Debug.LogError("Failed to send AwardPoints command with error: " + result.ErrorMessage);
+                        return;
+                    }
+                    AwardResponse response = result.Response.Value;
+                    Debug.Log("AwardPoints command succeeded; awarded points: " + response.ToString());
+                }
+            );
         }
     }
 }
