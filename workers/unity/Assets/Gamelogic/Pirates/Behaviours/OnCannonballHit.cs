@@ -28,7 +28,12 @@ namespace Assets.Gamelogic.Pirates.Cannons
             // Ignore collision if this ship is already dead
             if (HealthWriter.Data.currentHealth <= 0)
                 return;
-
+            
+            // Ignore if hitting oneself
+            if (other.GetComponent<DestroyCannonball>().firerEntityId == gameObject.EntityId())
+            {
+                return;
+            }
             if (other != null && other.gameObject.tag == "Cannonball")
             {
                 // Reduce health of this entity when hit
